@@ -47,14 +47,49 @@ const crearUsuario = async (req, res = response) => {
    
 };
 
-const loginUsuario = (req, res) => {
+const loginUsuario = async (req, res) => {
 
-    const {email, password} = req.body;
+    const {email, pass} = req.body;
 
-    return res.json({
-        ok: true,
-        msg: "Login usuario /new"
-    })
+    try {
+
+        const dbUser = await Usuario.findOne({email});
+
+        if(!dbUser){
+            return res.status(400).json({
+                ok: false,
+                msg: process.env.Debug ? "Correo Inexistente" : "Usuario o Constraseña Incorrectos" 
+            })
+        }
+
+        //Confirmar Password
+        const validPassword = bcrypt.compareSync(pass, dbUser.pass)
+        
+        if(!validPassword){
+            return res.status(400).json({
+                ok: false,
+                msg: process.env.Debug ? "Password no coincide" : "Usuario o Constraseña Incorrectos" 
+            })
+        }
+
+        //Generar JWT
+        const token = await generarJWT( dbUser.id, dbUser.name);
+
+        return res.json({
+            ok: true,
+            uid: dbUser.id,
+            name: dbUser.name, 
+            token
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            msg: "Hable con el Admin"
+        })
+    }
+
+   
 };
 
 const revalidarToken = (req, res) => {
