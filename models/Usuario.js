@@ -10,7 +10,7 @@ const usuarioSchema = Schema({
         required: true,
         unique: true
     },
-    name: {
+    pass: {
         type: String, 
         required: true
     }
